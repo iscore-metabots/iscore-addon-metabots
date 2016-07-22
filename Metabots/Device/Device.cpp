@@ -7,6 +7,7 @@
 #include "Device.hpp"
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <QFormLayout>
+#include <QtSerialPort>
 #include <QHBoxLayout>
 
 namespace Metabots
@@ -28,7 +29,7 @@ bool MetabotDevice::reconnect()
 
     MetabotSpecificSettings set = settings().deviceSpecificSettings.value<MetabotSpecificSettings>();
     try {
-        auto proto = std::make_shared<Metabot>(set.port.toStdString());
+        auto proto = std::make_shared<Metabot>(set.port);
         m_dev = std::make_shared<MetabotDeviceImpl>(proto);
         m_dev->setName(settings().name.toStdString());
         m_dev->updateNamespace();
@@ -133,7 +134,13 @@ void
 ProtocolSettingsWidget::buildGUI()
 {
     m_name = new QLineEdit;
-    m_port = new QLineEdit;
+    m_port = new QComboBox;
+
+    for(auto port : QSerialPortInfo::availablePorts())
+    {
+        m_port->addItem(port.portName());
+    }
+
 
     auto lay = new QFormLayout;
     lay->addRow(tr("Name"), m_name);
@@ -150,7 +157,15 @@ Device::DeviceSettings ProtocolSettingsWidget::getSettings() const
     MetabotSpecificSettings metabot;
     s.name = m_name->text();
 
-    metabot.port = m_port->text();
+
+    for(auto port : QSerialPortInfo::availablePorts())
+    {
+        if(port.portName() == m_port->currentText())
+        {
+            metabot.port = port;
+        }
+    }
+
     s.deviceSpecificSettings = QVariant::fromValue(metabot);
 
     return s;
@@ -164,7 +179,7 @@ ProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
     {
         MetabotSpecificSettings metabot = settings.deviceSpecificSettings.value<MetabotSpecificSettings>();
 
-        m_port->setText(metabot.port);
+        m_port->setCurrentText(metabot.port.portName());
     }
 }
 }
@@ -174,26 +189,30 @@ ProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const Metabots::MetabotSpecificSettings& n)
 {
-    m_stream << n.port;
+    ISCORE_TODO;
+    //m_stream << n.port;
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Metabots::MetabotSpecificSettings& n)
 {
-    m_stream >> n.port;
+    ISCORE_TODO;
+    //m_stream >> n.port;
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(const Metabots::MetabotSpecificSettings& n)
 {
-    m_obj["Port"] = n.port;
+    ISCORE_TODO;
+   // m_obj["Port"] = n.port;
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Metabots::MetabotSpecificSettings& n)
 {
-    n.port = m_obj["Port"].toString();
+    ISCORE_TODO;
+   // n.port = m_obj["Port"].toString();
 }
 

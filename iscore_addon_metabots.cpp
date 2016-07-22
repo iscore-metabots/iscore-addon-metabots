@@ -1,6 +1,7 @@
 #include "iscore_addon_metabots.hpp"
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <iscore_addon_metabots_commands_files.hpp>
+#include <Metabots/Device/Device.hpp>
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_addon_metabots::make_commands()
 {/*
@@ -20,7 +21,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_addon_metabots
         const iscore::ApplicationContext& ctx,
         const iscore::AbstractFactoryKey& key) const
 {
-    return instantiate_factories<iscore::ApplicationContext, TL<>>(ctx, key);
+    return instantiate_factories<iscore::ApplicationContext,
+            TL<FW<Device::ProtocolFactory, Metabots::ProtocolFactory>>
+    >(ctx, key);
 }
 
 iscore_addon_metabots::iscore_addon_metabots()

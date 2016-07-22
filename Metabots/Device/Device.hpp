@@ -5,7 +5,8 @@
 #include <QString>
 #include <QVariant>
 #include <QLineEdit>
-
+#include <QComboBox>
+#include <QSerialPortInfo>
 namespace Metabots
 {
 class MetabotDevice final : public Ossia::OSSIADevice
@@ -22,13 +23,13 @@ class MetabotDevice final : public Ossia::OSSIADevice
 
 struct MetabotSpecificSettings
 {
-        QString port;
+        QSerialPortInfo port;
 };
 
 class ProtocolFactory final :
         public Device::ProtocolFactory
 {
-        ISCORE_CONCRETE_FACTORY("e02797d0-e841-48b3-9033-77a98715e141")
+        ISCORE_CONCRETE_FACTORY("51a1115e-4c46-4f13-bc8e-28316aad335f")
 
         // Implement with OSSIA::Device
         QString prettyName() const override;
@@ -71,7 +72,7 @@ class ProtocolSettingsWidget :
         void buildGUI();
 
         QLineEdit* m_name;
-        QLineEdit* m_port;
+        QComboBox* m_port;
 };
 }
 Q_DECLARE_METATYPE(Metabots::MetabotSpecificSettings)
