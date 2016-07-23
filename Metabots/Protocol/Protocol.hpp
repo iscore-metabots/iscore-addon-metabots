@@ -5,7 +5,7 @@
 #include <Network/Protocol.h>
 #include <Network/Device.h>
 #include <Network/Address.h>
-#include <Editor/Value/SafeValue.h>
+#include <Editor/Value/Value.h>
 #include <QtSerialPort>
 #include <iostream>
 namespace Metabots
