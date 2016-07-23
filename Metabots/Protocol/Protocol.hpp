@@ -225,7 +225,7 @@ class MetabotAddress final :
         std::shared_ptr<OSSIA::Domain> mDomain;
 
         OSSIA::Type mType;
-        OSSIA::SafeValue mValue;
+        OSSIA::Value mValue;
     public:
         template<typename Prop_T>
         MetabotAddress(Prop_T p, std::shared_ptr<OSSIA::Node> parent):
@@ -249,7 +249,7 @@ class MetabotAddress final :
             mProtocol.lock()->pullAddressValue(*this);
         }
 
-        Address& pushValue(const OSSIA::SafeValue& val) override
+        Address& pushValue(const OSSIA::Value& val) override
         {
             mValue = val;
             mProtocol.lock()->pushAddressValue(*this);
@@ -263,18 +263,18 @@ class MetabotAddress final :
         }
 
 
-        const OSSIA::SafeValue& getValue() const
+        const OSSIA::Value& getValue() const
         {
             return mValue;
         }
 
-        OSSIA::SafeValue cloneValue(std::vector<char>) const override
+        OSSIA::Value cloneValue(std::vector<char>) const override
         {
             // TODO use the vec parameter
             return mValue;
         }
 
-        Address& setValue(const OSSIA::SafeValue& v) override
+        Address& setValue(const OSSIA::Value& v) override
         {
             mValue = v;
             return *this;
@@ -357,7 +357,7 @@ class MetabotAddress final :
             }
         }
 
-        void valueCallback(const OSSIA::SafeValue& val)
+        void valueCallback(const OSSIA::Value& val)
         {
             this->setValue(val);
             send(mValue);
