@@ -268,7 +268,7 @@ class MetabotAddress final :
             return mValue;
         }
 
-        OSSIA::Value cloneValue(std::vector<char>) const override
+        OSSIA::Value cloneValue(OSSIA::DestinationIndex) const override
         {
             // TODO use the vec parameter
             return mValue;
