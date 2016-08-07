@@ -1,4 +1,4 @@
-#include <Network/Device.h>
+#include <ossia/network/base/device.hpp>
 #include <Metabots/Protocol/Protocol.hpp>
 #include <QString>
 #include <memory>
@@ -13,9 +13,8 @@
 namespace Metabots
 {
 MetabotDevice::MetabotDevice(const Device::DeviceSettings &settings):
-    OSSIADevice{settings}
+    Ossia::Protocols::OwningOSSIADevice{settings}
 {
-    using namespace OSSIA;
     m_capas.canRefreshTree = true;
     m_capas.canSerialize = false;
 
@@ -29,10 +28,12 @@ bool MetabotDevice::reconnect()
 
     MetabotSpecificSettings set = settings().deviceSpecificSettings.value<MetabotSpecificSettings>();
     try {
-        auto proto = std::make_shared<Metabot>(set.port);
-        m_dev = std::make_shared<MetabotDeviceImpl>(proto);
-        m_dev->setName(settings().name.toStdString());
-        m_dev->updateNamespace();
+        auto bot = std::make_unique<MetabotDeviceImpl>(set.port);
+
+        bot->setName(settings().name.toStdString());
+        bot->updateNamespace();
+
+        m_dev = std::move(bot);
     }
     catch(std::exception& e)
     {
@@ -46,7 +47,7 @@ void MetabotDevice::disconnect()
 {
     if(connected())
     {
-        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+        removeListening_impl(m_dev->getRootNode(), State::Address{m_settings.name, {}});
     }
 
     m_callbacks.clear();
@@ -63,7 +64,7 @@ Device::Node MetabotDevice::refresh()
     }
     else
     {
-        auto& children = m_dev->children();
+        auto& children = m_dev->getRootNode().children();
         device_node.reserve(children.size());
         for(const auto& node : children)
         {

@@ -9,7 +9,7 @@
 #include <QSerialPortInfo>
 namespace Metabots
 {
-class MetabotDevice final : public Ossia::OSSIADevice
+class MetabotDevice final : public Ossia::Protocols::OwningOSSIADevice
 {
     public:
         MetabotDevice(const Device::DeviceSettings& settings);

@@ -2,21 +2,21 @@
 #include <sstream>
 #include <iomanip>
 
-bool Metabots::Metabot::pushAddressValue(const OSSIA::Address& addr) const
+bool Metabots::Metabot::push(const ossia::net::address_base& addr)
 {
     auto& ad = dynamic_cast<const MetabotAddress&>(addr);
     std::stringstream s;
-    s << addr.getNode()->getName();
+    s << addr.getNode().getName();
 
     switch(addr.getValueType())
     {
-        case OSSIA::Type::FLOAT:
-            s << " " << std::setprecision(4) << std::to_string(ad.getValue().get<OSSIA::Float>().value);
+        case ossia::val_type::FLOAT:
+            s << " " << std::setprecision(4) << std::to_string(ad.getValue().get<ossia::Float>().value);
             break;
-        case OSSIA::Type::INT:
-            s << " " << std::to_string(ad.getValue().get<OSSIA::Int>().value);
+        case ossia::val_type::INT:
+            s << " " << std::to_string(ad.getValue().get<ossia::Int>().value);
             break;
-        case OSSIA::Type::IMPULSE:
+        case ossia::val_type::IMPULSE:
             break;
         default:
             throw;
@@ -36,3 +36,46 @@ Metabots::Metabot::~Metabot()
 }
 
 
+
+Metabots::MetabotNode::MetabotNode(
+        std::string name,
+        Metabots::MetabotDeviceImpl& aDevice,
+        Metabots::MetabotNode* aParent):
+    mName{std::move(name)},
+    mDevice{aDevice},
+    mParent{aParent}
+{
+}
+
+std::string Metabots::MetabotNode::getName() const
+{ return mName; }
+
+ossia::net::device_base&Metabots::MetabotNode::getDevice() const
+{
+    return mDevice;
+}
+
+ossia::net::node_base*Metabots::MetabotNode::getParent() const
+{
+    return mParent;
+}
+
+ossia::net::node_base&Metabots::MetabotNode::setName(std::__cxx11::string)
+{
+    return *this;
+}
+
+ossia::net::address_base*Metabots::MetabotNode::getAddress() const
+{
+    return mAddress.get();
+}
+
+ossia::net::address_base*Metabots::MetabotNode::createAddress(ossia::val_type)
+{
+    return getAddress();
+}
+
+bool Metabots::MetabotNode::removeAddress()
+{
+    return false;
+}

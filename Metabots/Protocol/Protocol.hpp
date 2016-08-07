@@ -2,10 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <Network/Protocol.h>
-#include <Network/Device.h>
-#include <Network/Address.h>
-#include <Editor/Value/Value.h>
+#include <ossia/ossia.hpp>
 #include <QtSerialPort>
 #include <iostream>
 namespace Metabots
@@ -39,7 +36,7 @@ class SerialPortWrapper:
 
 class Metabot final :
         public QObject,
-        public OSSIA::Protocol
+        public ossia::net::protocol_base
 {
         mutable SerialPortWrapper m_serialPort;
     public:
@@ -57,146 +54,82 @@ class Metabot final :
             */
         }
 
+        bool pull(ossia::net::address_base&) override
+        { return false; }
+        bool push(const ossia::net::address_base&) override;
 
-        void setLogger(std::shared_ptr<OSSIA::NetworkLogger>) override { } // TODO
-        std::shared_ptr<OSSIA::NetworkLogger> getLogger() const override { return {}; } // TODO
+        bool observe(ossia::net::address_base&, bool) override
+        { return false; }
 
-        bool pullAddressValue(OSSIA::Address&) const override
-        {
-            return false;
-        }
-
-        bool pushAddressValue(const OSSIA::Address& addr) const override;
-
-        bool observeAddressValue(std::shared_ptr<OSSIA::Address>, bool) const override
-        {
-            return false;
-        }
-
-        bool updateChildren(OSSIA::Node& node) const override
-        {
-            return false;
-        }
+        bool update(ossia::net::node_base& node_base) override
+        { return false; }
 
         virtual ~Metabot();
 };
 
-
+class MetabotDeviceImpl;
+class MetabotAddress;
 class MetabotNode :
-        public virtual OSSIA::Node,
-        public std::enable_shared_from_this<MetabotNode>
+        public ossia::net::node_base
 {
     protected:
         std::string mName;
-        std::weak_ptr<OSSIA::Device> mDevice;
-        std::weak_ptr<OSSIA::Node> mParent;
-        std::shared_ptr<OSSIA::Address> mAddress;
+        MetabotDeviceImpl& mDevice;
+        MetabotNode* mParent{};
+        std::unique_ptr<MetabotAddress> mAddress;
 
     public:
-        using iterator = OSSIA::Container<OSSIA::Node>::iterator;
-        using const_iterator = OSSIA::Container<OSSIA::Node>::const_iterator;
-        MetabotNode() = default;
         MetabotNode(
                 std::string name,
-                std::weak_ptr<OSSIA::Device> aDevice,
-                std::weak_ptr<OSSIA::Node> aParent):
-            mName{std::move(name)},
-            mDevice{std::move(aDevice)},
-            mParent{std::move(aParent)}
-        {
-        }
+                MetabotDeviceImpl& aDevice,
+                MetabotNode* aParent);
 
         template<typename... Args>
         void init(Args&&... args);
 
-        std::string getName() const override
-        { return mName; }
+        std::string getName() const override;
 
-        std::shared_ptr<OSSIA::Device> getDevice() const final override
-        {
-            return mDevice.lock();
-        }
+        ossia::net::device_base& getDevice() const final override;
 
-        std::shared_ptr<Node> getParent() const final override
-        {
-            return mParent.lock();
-        }
+        ossia::net::node_base* getParent() const final override;
 
-        std::shared_ptr<Node> getThis() final override
-        {
-            return shared_from_this();
-        }
+        ossia::net::node_base& setName(std::string) override;
 
-        Node& setName(std::string) override
-        {
-            return *this;
-        }
+        ossia::net::address_base* getAddress() const final override;
 
-        std::shared_ptr<OSSIA::Address> getAddress() const final override
-        {
-            return mAddress;
-        }
+        ossia::net::address_base* createAddress(ossia::val_type) final override;
 
-        std::shared_ptr<OSSIA::Address> createAddress(OSSIA::Type) final override
-        {
-            return mAddress;
-        }
+        bool removeAddress() final override;
 
-        bool removeAddress() final override
-        {
-            return false;
-        }
-
-        iterator emplace(const_iterator, std::string) final override
-        {
-            return {};
-        }
-
-        iterator emplace(const_iterator,
-                         const std::string&,
-                         OSSIA::Type,
-                         OSSIA::AccessMode,
-                         const std::shared_ptr<OSSIA::Domain>&,
-                         OSSIA::BoundingMode,
-                         bool repetitionFilter) final override
-        {
-            return {};
-        }
-
-        iterator insert(const_iterator, std::shared_ptr<Node>, std::string) final override
-        {
-            return {};
-        }
-
-        iterator erase(const_iterator) final override
-        {
-            return {};
-        }
+        std::unique_ptr<node_base> makeChild(const std::string& name)
+        { return nullptr; }
+        void removingChild(ossia::net::node_base& node_base)
+        { }
 };
 
 
 struct MetabotData
 {
         struct FloatProperties {
-                using ossia_type = OSSIA::Float;
-                static const constexpr OSSIA::Type type = OSSIA::Type::FLOAT;
+                using ossia_type = ossia::Float;
+                static const constexpr ossia::val_type type = ossia::val_type::FLOAT;
                 std::string name;
-                OSSIA::Float min;
-                OSSIA::Float max;
+                ossia::Float min;
+                ossia::Float max;
         };
         struct IntProperties {
-                using ossia_type = OSSIA::Int;
-                static const constexpr OSSIA::Type type = OSSIA::Type::INT;
+                using ossia_type = ossia::Int;
+                static const constexpr ossia::val_type type = ossia::val_type::INT;
                 std::string name;
-                OSSIA::Int min;
-                OSSIA::Int max;
+                ossia::Int min;
+                ossia::Int max;
         };
         struct ImpulseProperties {
-                using ossia_type = OSSIA::Impulse;
-                static const constexpr OSSIA::Type type = OSSIA::Type::IMPULSE;
+                using ossia_type = ossia::Impulse;
+                static const constexpr ossia::val_type type = ossia::val_type::IMPULSE;
                 std::string name;
-                OSSIA::Impulse min{};
-                OSSIA::Impulse max{};
+                ossia::Impulse min{};
+                ossia::Impulse max{};
         };
 
         const std::array<FloatProperties, 7> floats{ {
@@ -217,213 +150,197 @@ struct MetabotData
 };
 
 class MetabotAddress final :
-        public OSSIA::Address,
+        public ossia::net::address_base,
         public std::enable_shared_from_this<MetabotAddress>
 {
-        std::weak_ptr<OSSIA::Node> mParent;
-        std::weak_ptr<Metabot> mProtocol;
-        std::shared_ptr<OSSIA::Domain> mDomain;
+        MetabotNode& mParent;
+        Metabot& mProtocol;
+        ossia::net::domain mDomain;
 
-        OSSIA::Type mType;
-        OSSIA::Value mValue;
+        ossia::val_type mType;
+        ossia::value mValue;
+        std::string mTextAddress;
     public:
         template<typename Prop_T>
-        MetabotAddress(Prop_T p, std::shared_ptr<OSSIA::Node> parent):
+        MetabotAddress(Prop_T p, MetabotNode& parent):
             mParent{parent},
-            mProtocol{std::dynamic_pointer_cast<Metabot>(parent->getDevice()->getProtocol())},
-            mDomain{OSSIA::Domain::create(p.min, p.max)},
+            mProtocol{static_cast<Metabot&>(parent.getDevice().getProtocol())},
+            mDomain{ossia::net::makeDomain(p.min, p.max)},
             mType{p.type},
             mValue{typename Prop_T::ossia_type{}}
         {
-            assert(mProtocol.lock());
+            mTextAddress = "/" + mParent.getName();
         }
 
 
-        const std::shared_ptr<OSSIA::Node> getNode() const override
+        MetabotNode& getNode() const override
         {
-            return mParent.lock();
+            return mParent;
         }
 
         void pullValue() override
         {
-            mProtocol.lock()->pullAddressValue(*this);
         }
 
-        Address& pushValue(const OSSIA::Value& val) override
+        ossia::net::address_base& pushValue(const ossia::value& val) override
         {
+            // TODO sanitize type
             mValue = val;
-            mProtocol.lock()->pushAddressValue(*this);
+            mProtocol.push(*this);
             return *this;
         }
 
-        Address& pushValue() override
+        ossia::net::address_base& pushValue() override
         {
-            mProtocol.lock()->pushAddressValue(*this);
+            mProtocol.push(*this);
             return *this;
         }
 
 
-        const OSSIA::Value& getValue() const
+        const ossia::value& getValue() const
         {
             return mValue;
         }
 
-        OSSIA::Value cloneValue(OSSIA::DestinationIndex) const override
+        ossia::value cloneValue(ossia::destination_index) const override
         {
             // TODO use the vec parameter
             return mValue;
         }
 
-        Address& setValue(const OSSIA::Value& v) override
+        ossia::net::address_base& setValue(const ossia::value& v) override
         {
             mValue = v;
             return *this;
         }
 
 
-        OSSIA::Type getValueType() const override
+        ossia::val_type getValueType() const override
         {
             return mType;
         }
 
-        Address& setValueType(OSSIA::Type) override
+        ossia::net::address_base& setValueType(ossia::val_type) override
         {
             return *this;
         }
 
 
-        OSSIA::AccessMode getAccessMode() const override
+        ossia::access_mode getAccessMode() const override
         {
-            return OSSIA::AccessMode::BI;
+            return ossia::access_mode::BI;
         }
 
-        Address& setAccessMode(OSSIA::AccessMode) override
+        ossia::net::address_base& setAccessMode(ossia::access_mode) override
         {
             return *this;
         }
 
 
-        const std::shared_ptr<OSSIA::Domain>& getDomain() const override
+        const ossia::net::domain& getDomain() const override
         {
             return mDomain;
         }
 
-        Address& setDomain(std::shared_ptr<OSSIA::Domain>) override
+        ossia::net::address_base& setDomain(const ossia::net::domain&) override
         {
             return *this;
         }
 
 
-        OSSIA::BoundingMode getBoundingMode() const override
+        ossia::bounding_mode getBoundingMode() const override
         {
-            return OSSIA::BoundingMode::CLIP;
+            return ossia::bounding_mode::CLIP;
         }
 
-        Address&setBoundingMode(OSSIA::BoundingMode) override
-        {
-            return *this;
-        }
-
-        bool getRepetitionFilter() const override
-        {
-            return false;
-        }
-
-        Address&setRepetitionFilter(bool) override
+        ossia::net::address_base&setBoundingMode(ossia::bounding_mode) override
         {
             return *this;
         }
 
-
-        Address::iterator addCallback(OSSIA::ValueCallback callback) override
+        ossia::repetition_filter getRepetitionFilter() const override
         {
-            auto it = CallbackContainer::addCallback(std::move(callback));
-
-            if (callbacks().size() == 1)
-            {
-                mProtocol.lock()->observeAddressValue(shared_from_this(), true);
-            }
-
-            return it;
+            return ossia::repetition_filter::OFF;
         }
 
-        void removeCallback(Address::iterator callback) override
+        ossia::net::address_base&setRepetitionFilter(ossia::repetition_filter) override
         {
-            CallbackContainer::removeCallback(callback);
-
-            if (callbacks().size() == 0)
-            {
-                mProtocol.lock()->observeAddressValue(shared_from_this(), false);
-            }
+            return *this;
         }
 
-        void valueCallback(const OSSIA::Value& val)
+
+        void valueCallback(const ossia::value& val)
         {
             this->setValue(val);
             send(mValue);
+        }
+
+        const std::string& getTextualAddress() const
+        {
+            return mTextAddress;
         }
 };
 
 template<typename... Args>
 void MetabotNode::init(Args&&... args)
 {
-    mAddress = std::make_shared<MetabotAddress>(
+    mAddress = std::make_unique<MetabotAddress>(
                    std::forward<Args>(args)...,
-                   shared_from_this());
+                   *this);
 }
 
 class MetabotDeviceImpl :
-        public OSSIA::Device,
+        public ossia::net::device_base,
         public MetabotNode
 {
-        std::shared_ptr<OSSIA::Protocol> mProtocol;
     public:
-        MetabotDeviceImpl(std::shared_ptr<OSSIA::Protocol> prot):
-            mProtocol{prot}
+        MetabotDeviceImpl(const QSerialPortInfo& bot):
+            ossia::net::device_base{std::make_unique<Metabot>(bot)},
+            MetabotNode{"", *this, nullptr}
         {
         }
 
+        std::string getName() const override
+        { return mName; }
+        node_base& setName(std::string n) override
+        { mName = n; return *this; }
 
-        Node & setName(std::string n) override
+        const ossia::net::node_base& getRootNode() const override
         {
-            mName = n;
-            return *this;
+          return *this;
+        }
+        ossia::net::node_base& getRootNode() override
+        {
+          return *this;
         }
 
 
-        std::shared_ptr<OSSIA::Protocol> getProtocol() const override
+        bool updateNamespace()
         {
-            return mProtocol;
-        }
-
-        bool updateNamespace() override
-        {
-            m_children.clear();
+            mChildren.clear();
 
             try {
-                auto ptr = shared_from_this();
-                auto dev_ptr = std::dynamic_pointer_cast<OSSIA::Device>(ptr);
 
-                static const MetabotData m{};
+                const MetabotData m{};
                 for(auto prop : m.impulses)
                 {
-                    auto node = std::make_shared<MetabotNode>(prop.name, dev_ptr, dev_ptr);
+                    auto node = std::make_unique<MetabotNode>(prop.name, *this, this);
                     node->init(prop);
-                    m_children.push_back(std::move(node));
+                    mChildren.push_back(std::move(node));
                 }
 
                 for(auto prop : m.floats)
                 {
-                    auto node = std::make_shared<MetabotNode>(prop.name, dev_ptr, dev_ptr);
+                    auto node = std::make_unique<MetabotNode>(prop.name, *this, this);
                     node->init(prop);
-                    m_children.push_back(std::move(node));
+                    mChildren.push_back(std::move(node));
                 }
 
                 for(auto prop : m.ints)
                 {
-                    auto node = std::make_shared<MetabotNode>(prop.name, dev_ptr, dev_ptr);
+                    auto node = std::make_unique<MetabotNode>(prop.name, *this, this);
                     node->init(prop);
-                    m_children.push_back(std::move(node));
+                    mChildren.push_back(std::move(node));
                 }
             }
             catch(...)
