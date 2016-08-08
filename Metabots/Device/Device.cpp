@@ -5,7 +5,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "Device.hpp"
-#include <OSSIA/OSSIA2iscore.hpp>
+#include <Engine/OSSIA2iscore.hpp>
 #include <QFormLayout>
 #include <QtSerialPort>
 #include <QHBoxLayout>
@@ -13,7 +13,7 @@
 namespace Metabots
 {
 MetabotDevice::MetabotDevice(const Device::DeviceSettings &settings):
-    Ossia::Protocols::OwningOSSIADevice{settings}
+    Engine::Network::OwningOSSIADevice{settings}
 {
     m_capas.canRefreshTree = true;
     m_capas.canSerialize = false;
@@ -68,7 +68,7 @@ Device::Node MetabotDevice::refresh()
         device_node.reserve(children.size());
         for(const auto& node : children)
         {
-            device_node.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
+            device_node.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
         }
     }
 

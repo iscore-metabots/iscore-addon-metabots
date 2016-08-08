@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(iscore_addon_metabots LANGUAGES CXX)
 
-if(NOT TARGET iscore_plugin_ossia)
+if(NOT TARGET iscore_plugin_engine)
     return()
 endif()
 
@@ -23,6 +23,6 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS})
 
 iscore_generate_command_list_file(${PROJECT_NAME} "${SRCS}")
-target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_ossia Qt5::SerialPort)
+target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_engine Qt5::SerialPort)
 
 setup_iscore_plugin(${PROJECT_NAME})

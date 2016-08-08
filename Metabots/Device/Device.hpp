@@ -1,5 +1,5 @@
 #pragma once
-#include <OSSIA/Protocols/OSSIADevice.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QString>
@@ -9,7 +9,7 @@
 #include <QSerialPortInfo>
 namespace Metabots
 {
-class MetabotDevice final : public Ossia::Protocols::OwningOSSIADevice
+class MetabotDevice final : public Engine::Network::OwningOSSIADevice
 {
     public:
         MetabotDevice(const Device::DeviceSettings& settings);
@@ -19,7 +19,7 @@ class MetabotDevice final : public Ossia::Protocols::OwningOSSIADevice
         void disconnect() override;
 
         Device::Node refresh() override;
-        using Ossia::Protocols::OSSIADevice::refresh;
+        using Engine::Network::OSSIADevice::refresh;
 };
 
 struct MetabotSpecificSettings
