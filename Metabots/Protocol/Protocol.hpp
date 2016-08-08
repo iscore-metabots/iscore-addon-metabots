@@ -101,9 +101,9 @@ class MetabotNode :
 
         bool removeAddress() final override;
 
-        std::unique_ptr<node_base> makeChild(const std::string& name)
+        std::unique_ptr<node_base> makeChild(const std::string& name) override
         { return nullptr; }
-        void removingChild(ossia::net::node_base& node_base)
+        void removingChild(ossia::net::node_base& node_base) override
         { }
 };
 
@@ -275,7 +275,7 @@ class MetabotAddress final :
             send(mValue);
         }
 
-        const std::string& getTextualAddress() const
+        const std::string& getTextualAddress() const override
         {
             return mTextAddress;
         }

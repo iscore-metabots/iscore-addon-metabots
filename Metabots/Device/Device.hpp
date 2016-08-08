@@ -19,6 +19,7 @@ class MetabotDevice final : public Ossia::Protocols::OwningOSSIADevice
         void disconnect() override;
 
         Device::Node refresh() override;
+        using Ossia::Protocols::OSSIADevice::refresh;
 };
 
 struct MetabotSpecificSettings
