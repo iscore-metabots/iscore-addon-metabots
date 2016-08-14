@@ -1,6 +1,8 @@
 #include "Protocol.hpp"
 #include <sstream>
 #include <iomanip>
+#include <QDebug>
+#include <iscore/tools/std/String.hpp>
 
 bool Metabots::Metabot::push(const ossia::net::address_base& addr)
 {
