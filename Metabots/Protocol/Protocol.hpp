@@ -165,7 +165,7 @@ class MetabotAddress final :
         MetabotAddress(Prop_T p, MetabotNode& parent):
             mParent{parent},
             mProtocol{static_cast<Metabot&>(parent.getDevice().getProtocol())},
-            mDomain{ossia::net::makeDomain(p.min, p.max)},
+            mDomain{ossia::net::make_domain(p.min, p.max)},
             mType{p.type},
             mValue{typename Prop_T::ossia_type{}}
         {
